@@ -1,0 +1,12 @@
+[Unit]
+Description=Twitter Camera Script
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /usr/local/bin/tweetcam.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+
