@@ -1,0 +1,7 @@
+[TWEETCAM]
+
+email_addr_from=someone@example.com
+email_addr_to=someoneelse@example.com
+message_subject=Picture for #twitpic upload via IFTTT
+message_body=Picture taken at #Event with my Twitter-connected camera!
+photo_directory=/opt/tweetcam/

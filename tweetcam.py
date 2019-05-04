@@ -10,46 +10,66 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 
+import configparser
+import random
+from datetime import datetime
+
+# Debugging without camera module
+import shutil
+
 GPIO.setmode(GPIO.BCM)
 
 yellow_led=22
 green_led=27
 shutter_pin = 17
 
-email_addr_from = 'kenneth@fcix.net'
-email_addr_to = 'kennethfinnegan2007@gmail.com'
+config = configparser.ConfigParser()
+config.read('/etc/tweetcam.conf')
 
 GPIO.setup (yellow_led, GPIO.OUT)
 GPIO.setup (green_led, GPIO.OUT)
 GPIO.setup (shutter_pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.output(yellow_led, False)
+GPIO.output(green_led, False)
 
 photo_taken=0
 
 sleep(2)
 
 def take_photo(pin):
-    GPIO.output(yellow_led, True)
-    sleep(0.1)
     global photo_taken
-    photo_taken = 1
+    photo_taken += 1
 
-    send_email()
+    photoid = datetime.today().strftime('%Y%m%d%H%M%S') + "-" + str(random.randint(10000000,99999999)) + '.jpg'
+    photodir = config['TWEETCAM']['photo_directory']
+
+    # This is where we would take a picture
+    shutil.copyfile('/home/kenneth/test.jpg', photodir+photoid)
+
+
+    GPIO.output(yellow_led, True)
+    send_email(photofile=photodir+photoid)
     GPIO.output(yellow_led, False)
-    sleep(0.1)
 
 
-def send_email():
+def send_email(photofile=None):
 
     message = MIMEMultipart()
-    message['From'] = email_addr_from
-    message['To'] = email_addr_to
+    message['From'] = config['TWEETCAM']['email_addr_from']
+    message['To'] = config['TWEETCAM']['email_addr_to']
     message['Date'] = formatdate(localtime=True)
-    message['Subject'] = 'Someone pushed a button on the Raspberry Pi!'
+    message['Subject'] = config['TWEETCAM']['message_subject']
 
-    message.attach(MIMEText("Aren't you glad kenneth set your email as the destination address in this script?"))
+    message.attach(MIMEText(config['TWEETCAM']['message_body']))
+
+    if photofile != None:
+        with open(photofile, "rb") as openfile:
+            message_part = MIMEApplication(openfile.read(), Name=basename(photofile))
+        message_part['Content-Disposition'] = 'attachment; filename="%s"' % basename(photofile)
+        message.attach(message_part)
 
     smtp = smtplib.SMTP('localhost')
-    smtp.sendmail(email_addr_from, email_addr_to, message.as_string())
+    smtp.sendmail(config['TWEETCAM']['email_addr_from'], config['TWEETCAM']['email_addr_to'], message.as_string())
     smtp.close()
 
 
@@ -62,8 +82,8 @@ while True:
     sleep(0.05)
     GPIO.output(green_led, False)
     sleep(2)
-    if photo_taken == 1:
-        photo_taken = 0
+    if photo_taken > 0:
+        photo_taken -= 1
         for x in range(3):
             GPIO.output(green_led, True)
             sleep(0.1)
