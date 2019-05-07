@@ -4,11 +4,10 @@ A Tweeting Camera which uses Email as its uplink
 Depends on a locally running email MTA like Postfix running. Presumably it
 will need a smarthost relay like Gmail to get the email out.
 
-Depends on configparser 
-
+Depends on configparser and picamera
 ```
 sudo apt install python-pip
-sudo pip install configparser
+sudo pip install configparser picamera
 ```
 
 Watches for a negative edge on GPIO17 to trigger a picture.

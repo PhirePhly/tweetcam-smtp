@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import RPi.GPIO as GPIO
+from picamera import PiCamera
 from time import sleep
 
 import smtplib
@@ -14,8 +15,6 @@ import configparser
 import random
 from datetime import datetime
 
-# Debugging without camera module
-import shutil
 
 GPIO.setmode(GPIO.BCM)
 
@@ -34,6 +33,10 @@ GPIO.output(green_led, False)
 
 photo_taken=0
 
+camera = PiCamera()
+camera.resolution = (2560, 1920)
+camera.start_preview()
+
 sleep(2)
 
 def take_photo(pin):
@@ -42,9 +45,10 @@ def take_photo(pin):
 
     photoid = datetime.today().strftime('%Y%m%d%H%M%S') + "-" + str(random.randint(10000000,99999999)) + '.jpg'
     photodir = config['TWEETCAM']['photo_directory']
+    photo_filename = photodir + photoid
 
-    # This is where we would take a picture
-    shutil.copyfile('/home/kenneth/test.jpg', photodir+photoid)
+    # Take the actual photo and save it to our photo directory
+    camera.capture(photo_filename)
 
 
     GPIO.output(yellow_led, True)
