@@ -82,7 +82,7 @@ def send_email(photofile=None):
     message['Date'] = formatdate(localtime=True)
     message['Subject'] = config['TWEETCAM']['message_subject']
 
-    message.attach(MIMEText(config['TWEETCAM']['message_body']))
+    message.attach(MIMEText( config['TWEETCAM']['message_body'] + " - " + datetime.today().strftime("%Y-%m-%d %H:%M:%S")))
 
     if photofile != None:
         with open(photofile, "rb") as openfile:
@@ -102,7 +102,7 @@ GPIO.add_event_detect(shutter_pin, GPIO.FALLING, callback=take_photo, bouncetime
 heartbeat_pulse = 0
 
 while True:
-    heartbeat_pulse = (heartbeat_pulse + 1) % 25
+    heartbeat_pulse = (heartbeat_pulse + 1) % 15
     if heartbeat_pulse == 0:
         GPIO.output(heartbeat_led, True)
         sleep(0.05)
